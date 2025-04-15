@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sketch</title>
+
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+    <script src="libraries/p5.min.js"></script>
+    <script src="libraries/p5.sound.min.js"></script>
+    <style>
+      .hover-effect::before {
+        content: '';
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 100px;
+        height: 100px;
+        background: url('sh.gif') no-repeat center center;
+        background-size: contain;
+        display: none; /* 初始隱藏 sh.gif */
+        pointer-events: none; /* 讓 sh.gif 不影響滑鼠事件 */
+        transform: translate(-50%, -50%); /* 將圖片置中 */
+        z-index: 1000;
+      }
+
+      .hover-effect:hover::before {
+        display: block; /* 當滑鼠移到按鈕上時顯示 sh.gif */
+      }
+    </style>
+  </head>
+
+  <body>
+    <div style="position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 10px;">
+      <button class="hover-effect" style="width: 100px; height: 100px; background-color: lightblue;" onclick="showIframe('https://www.tku.edu.tw/')">首頁</button>
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+        <button style="width: 100px; height: 100px; background-color: lightblue;" onclick="toggleWorksMenu()">作品集</button>
+        <div id="worksMenu" style="display: none; flex-direction: column; gap: 5px;">
+          <button style="width: 100px; height: 50px; background-color: lightblue;" onclick="showIframe('https://cfchengit.github.io/20250225/')">作品1</button>
+          <button style="width: 100px; height: 50px; background-color: lightblue;" onclick="showIframe('https://jjiu888.github.io/20250304/')">作品2</button>
+          <button style="width: 100px; height: 50px; background-color: lightblue;" onclick="showIframe('https://jjiu888.github.io/20250325/')">作品3</button>
+        </div>
+        <div id="iframeContainer" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 80%; background-color: rgba(0, 0, 0, 0.8); z-index: 1000; border-radius: 10px;">
+          <iframe id="iframeContent" style="width: 100%; height: 100%; border: none; background-color: transparent;"></iframe>
+          <button onclick="closeIframe()" style="position: absolute; top: 10px; right: 10px; background-color: red; color: white; border: none; padding: 5px 10px; cursor: pointer;">關閉</button>
+        </div>
+      </div>
+      <button style="width: 100px; height: 100px; background-color: lightblue;" onclick="toggleNotesMenu()">筆記</button>
+      <div id="notesMenu" style="display: none; flex-direction: column; gap: 5px;">
+        <button style="width: 100px; height: 50px; background-color: lightblue;" onclick="showIframe('https://hackmd.io/@jjjjiu/HJ4vtv-91l')">第一周筆記</button>
+        <button style="width: 100px; height: 50px; background-color: lightblue;" onclick="showIframe('https://hackmd.io/@jjjjiu/BJW0vcq5ye')">第二周筆記</button>
+        <button style="width: 100px; height: 50px; background-color: lightblue;" onclick="showIframe('https://hackmd.io/@jjjjiu/B1VSUCQskx')">第三周筆記</button>
+        <button style="width: 100px; height: 50px; background-color: lightblue;" onclick="showIframe('https://hackmd.io/@jjjjiu/HJZueKy6yg')">第四周筆記</button>
+        <button style="width: 100px; height: 50px; background-color: lightblue;" onclick="showIframe('https://hackmd.io/@jjjjiu/SyAfTeMA1x')">期中作品筆記</button>
+      </div>
+      <button style="width: 100px; height: 100px; background-color: lightblue;" onclick="startQuiz()">測驗</button>
+      <button style="width: 100px; height: 100px; background-color: lightblue;" onclick="showVideo()">教學影片</button>
+      <div id="videoContainer" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 80%; background-color: rgba(0, 0, 0, 0.8); z-index: 1000; border-radius: 10px;">
+        <video id="teachingVideo" controls style="width: 100%; height: 100%; border-radius: 10px;">
+          <source src="https://cfchen58.synology.me/%E4%BA%92%E5%8B%95%E7%A8%8B%E5%BC%8F%E8%A8%AD%E8%A8%88/1132/week4/20250311_092236.mp4" type="video/mp4">
+        </video>
+        <button onclick="closeVideo()" style="position: absolute; top: 10px; right: 10px; background-color: red; color: white; border: none; padding: 5px 10px; cursor: pointer;">關閉</button>
+      </div>
+      <button style="width: 100px; height: 100px; background-color: lightblue;" onclick="showAbout()">自我介紹</button>
+      <div id="about" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 35px; line-height: 1.6; color: #333; background-color: transparent; width: 10cm; height: 25cm; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); text-align: center; overflow: auto;">
+        <canvas id="aboutCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></canvas>
+        <div class="border">
+          <div class="card card-photo">
+            <div class="type">basic</div>
+            <header>
+              <h1 style="font-size: 20px; margin-left: 100px;">陳暐欣</h1>
+              <div class="hp"><small style="font-size: inherit;">20</small>Y <span class="material-symbols-outlined fill">visibility</span></div>
+            </header>
+            <img src="https://img.goodfon.com/original/3289x1762/7/f9/pokemon-go-mobile-jigglypuff-nintendo-japanese-asian-asiatic.jpg" alt="Card image">
+            <div class="info">教科三B</div>
+            <div class="content">
+              <div class="row">
+                <span><span class="material-symbols-outlined">star</span></span>
+                <h3>Dance</h3>
+                <span></span>
+              </div>
+              <div class="row">
+                <span><span class="material-symbols-outlined fill">visibility</span> <span class="material-symbols-outlined">star</span></span>
+                <h3>shopping</h3>
+                <span class="num"></span>
+                <p></p>
+              </div>
+            </div>
+            <footer>
+              <div class="upper">
+                <div>Weakness <span class="material-symbols-outlined">favorite</span> <small>x2</small></div>
+                <div>resistance</div>
+                <div>retreat <span class="material-symbols-outlined">star</span></div>
+              </div>
+            </footer>
+          </div>
+          <p>2025 </p>
+        </div>
+        <button onclick="closeAbout()" style="margin-top: 10px; padding: 10px 20px; background-color: red; color: white; border: none; cursor: pointer;">關閉</button>
+      </div>
+    </div>
+    <div id="quizContainer" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 200px; background-color: white; z-index: 1000; border-radius: 10px; padding: 20px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);">
+      <div id="quizQuestion" style="font-size: 24px; margin-bottom: 20px; color: black;"></div>
+      <input id="quizAnswer" type="text" style="width: 100%; padding: 10px; font-size: 18px; margin-bottom: 20px;">
+      <button onclick="checkAnswer()" style="width: 100%; padding: 10px; background-color: lightblue; font-size: 18px; cursor: pointer;">提交答案</button>
+    </div>
+    <div id="controls-container">
+      <button id="toggle-controls">Controls</button>
+      <button id="toggle-fullscreen">Full Screen</button>
+      <div id="controls">
+        <div class="control-group">
+          <label for="colorScheme">Colors:</label>
+          <select id="colorScheme">
+            <option value="rainbow">Rainbow</option>
+            <option value="red">Red</option>
+            <option value="green">Green</option>
+            <option value="blue">Blue</option>
+            <option value="monochrome">Monochrome</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="particleSize">Size:</label>
+          <input type="range" id="particleSize" min="1" max="20" value="10">
+          <span id="particleSizeValue">10</span>
+        </div>
+        <div class="control-group">
+          <label for="particleCount">Particles:</label>
+          <input type="range" id="particleCount" min="10" max="100" value="32">
+          <span id="particleCountValue">32</span>
+        </div>
+        <div class="control-group">
+          <label for="speed">Speed:</label>
+          <input type="range" id="speed" min="0.1" max="2" step="0.1" value="1">
+          <span id="speedValue">1</span>
+        </div>
+        <div class="control-group">
+          <label for="mouseInfluence">Mouse Follow:</label>
+          <input type="range" id="mouseInfluence" min="0" max="100" value="50">
+          <span id="mouseInfluenceValue">50</span>
+        </div>
+      </div>
+    </div>
+
+    <canvas id="c"></canvas>
+    <script src="sketch.js"></script>
+    <script>
+      function toggleWorksMenu() {
+        const menu = document.getElementById('worksMenu');
+        menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
+      }
+
+      function showIframe(url) {
+        const iframeContainer = document.getElementById('iframeContainer');
+        const iframeContent = document.getElementById('iframeContent');
+        iframeContent.src = url;
+        iframeContainer.style.display = 'block';
+      }
+
+      function closeIframe() {
+        const iframeContainer = document.getElementById('iframeContainer');
+        const iframeContent = document.getElementById('iframeContent');
+        iframeContent.src = '';
+        iframeContainer.style.display = 'none';
+      }
+
+      function toggleNotesMenu() {
+        const menu = document.getElementById('notesMenu');
+        menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
+      }
+
+      let clickCount = 0;
+
+      function startQuiz() {
+        clickCount++;
+        const quizContainer = document.getElementById('quizContainer');
+        const quizQuestion = document.getElementById('quizQuestion');
+        const quizAnswer = document.getElementById('quizAnswer');
+
+        if (clickCount === 2) {
+          quizContainer.style.display = 'none';
+          clickCount = 0; // 重置點擊計數
+          return;
+        }
+
+        generateQuestion();
+        quizAnswer.value = '';
+        quizContainer.style.display = 'block';
+      }
+
+      function generateQuestion() {
+        const quizQuestion = document.getElementById('quizQuestion');
+
+        // 隨機生成十位數內的加減法題目
+        const num1 = Math.floor(Math.random() * 10);
+        const num2 = Math.floor(Math.random() * 10);
+        const isAddition = Math.random() > 0.5;
+
+        if (isAddition) {
+          quizQuestion.textContent = `${num1} + ${num2} = ?`;
+          correctAnswer = num1 + num2;
+        } else {
+          quizQuestion.textContent = `${num1} - ${num2} = ?`;
+          correctAnswer = num1 - num2;
+        }
+      }
+
+      function checkAnswer() {
+        const quizAnswer = document.getElementById('quizAnswer').value;
+        if (parseInt(quizAnswer) === correctAnswer) {
+          alert('答對了！下一題！');
+          generateQuestion(); // 自動生成下一題
+          document.getElementById('quizAnswer').value = ''; // 清空答案輸入框
+        } else {
+          alert('答錯了，再試一次！');
+        }
+      }
+
+      function showVideo() {
+        const videoContainer = document.getElementById('videoContainer');
+        videoContainer.style.display = 'block';
+      }
+
+      function closeVideo() {
+        const videoContainer = document.getElementById('videoContainer');
+        const video = document.getElementById('teachingVideo');
+        video.pause(); // 暫停影片播放
+        videoContainer.style.display = 'none';
+      }
+
+      function showAbout() {
+        const aboutSection = document.getElementById('about');
+        aboutSection.style.display = 'block';
+        drawHearts();
+      }
+
+      function closeAbout() {
+        const aboutSection = document.getElementById('about');
+        aboutSection.style.display = 'none';
+      }
+
+      function drawHearts() {
+        const canvas = document.getElementById('aboutCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+
+        const cols = 10; // 每行愛心數量
+        const rows = 10; // 每列愛心數量
+        const spacingX = canvas.width / cols; // 水平間距
+        const spacingY = canvas.height / rows; // 垂直間距
+
+        function drawHeart(x, y, size) {
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.bezierCurveTo(x - size / 2, y - size / 2, x - size, y + size / 3, x, y + size);
+          ctx.bezierCurveTo(x + size, y + size / 3, x + size / 2, y - size / 2, x, y);
+          ctx.fillStyle = '#ADD8E6'; // 淡藍色
+          ctx.fill();
+        }
+
+        function updateHearts(mouseX) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          const heartSize = Math.max(5, Math.min(20, (mouseX / canvas.width) * 20)); // 根據滑鼠位置計算愛心大小
+          for (let i = 0; i < cols; i++) {
+            for (let j = 0; j < rows; j++) {
+              const x = spacingX * i + spacingX / 2;
+              const y = spacingY * j + spacingY / 2;
+              drawHeart(x, y, heartSize);
+            }
+          }
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+          const rect = canvas.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          updateHearts(mouseX);
+        });
+
+        updateHearts(canvas.width / 2); // 初始化愛心大小
+      }
+
+      // 初始化畫布
+      function setup() {
+        createCanvas(windowWidth, windowHeight);
+        noStroke();
+      }
+
+      // 繪製背景和星星
+      function draw() {
+        background(230, 230, 250); // 淡紫色背景
+
+        fill(255, 182, 193); // 淡粉色星星
+
+        let starSize = map(mouseX, 0, width, 20, 50); // 根據滑鼠位置計算星星大小
+        let cols = 5; // 每行星星數量
+        let rows = 5; // 每列星星數量
+        let spacingX = width / cols; // 水平間距
+        let spacingY = height / rows; // 垂直間距
+
+        for (let i = 0; i < cols; i++) {
+          for (let j = 0; j < rows; j++) {
+            let x = spacingX * i + spacingX / 2;
+            let y = spacingY * j + spacingY / 2;
+            drawStar(x, y, starSize / 2, starSize / 4, 5); // 繪製星星
+          }
+        }
+      }
+
+      // 繪製星星的函數
+      function drawStar(x, y, radius1, radius2, npoints) {
+        let angle = TWO_PI / npoints;
+        let halfAngle = angle / 2.0;
+        beginShape();
+        for (let a = 0; a < TWO_PI; a += angle) {
+          let sx = x + cos(a) * radius1;
+          let sy = y + sin(a) * radius1;
+          vertex(sx, sy);
+          sx = x + cos(a + halfAngle) * radius2;
+          sy = y + sin(a + halfAngle) * radius2;
+          vertex(sx, sy);
+        }
+        endShape(CLOSE);
+      }
+    </script>
+  </body>
+</html>
